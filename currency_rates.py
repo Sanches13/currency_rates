@@ -18,10 +18,21 @@ def is_date_correct(date) -> bool:
         return True
     except ValueError:
         return False
+    
+def get_currency_rate(code, date) -> str:
+    rates = requests.get("https://www.cbr.ru/scripts/XML_daily.asp?date_req=" + date).text
+    rate_format = re.compile(code + r'''</CharCode>
+                             <Nominal>(\d){1,5}</Nominal>
+                             <Name>[а-яА-Я ]*</Name>
+                             <Value>((\d){1,3},(\d){1,4})</Value>''', re.VERBOSE)
+    return rate_format.search(rates).group(2)
 
 def main():
     args = arguments_parser()
-    print(is_date_correct(args.date))
+    if is_code_correct(args.code) and is_date_correct(args.date):
+        print(get_currency_rate(args.code, args.date))
+    else:
+        sys.exit()
 
 if __name__ == "__main__":
     main()
